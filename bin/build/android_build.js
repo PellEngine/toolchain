@@ -41,16 +41,16 @@ const cleanBuild = {
 
 const buildAppLibrary = {
   name: 'Build application',
-  execute: async function() {
-    const { success, message } = await buildAppLib(process.cwd(), this.sdkLocations, this.projectDefinition);
+  execute: async function(params) {
+    const { success, message } = await buildAppLib(process.cwd(), this.sdkLocations, this.projectDefinition, params.devlib);
     return { success: success, message: message };
   }
 };
 
 const makeApk = {
   name: 'Create apk',
-  execute: async function() {
-    const { success, message } = await createApk(process.cwd(), this.sdkLocations, this.projectDefinition);
+  execute: async function(params) {
+    const { success, message } = await createApk(process.cwd(), this.sdkLocations, this.projectDefinition, params.devlib);
     return { success: success, message: message };
   }
 };

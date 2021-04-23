@@ -17,7 +17,7 @@ const clean = (directory) => {
   if(fs.existsSync(buildDir)) fs.rmdirSync(buildDir, { recursive: true });  
 };
 
-const buildAppLib = async (directory, sdkLocations, projectDefinition) => {
+const buildAppLib = async (directory, sdkLocations, projectDefinition, devlib) => {
   const buildDir = path.join(directory, 'build', 'android');
 
   const architectures = [
@@ -70,10 +70,10 @@ const buildAppLib = async (directory, sdkLocations, projectDefinition) => {
     `-I${path.join(ndk, 'sysroot', 'usr', 'include').toString()}`,
     `-I${path.join(ndk, 'sysroot', 'usr', 'include', 'android').toString()}`,
     `-I${path.join(ndk, 'toolchains', 'llvm', 'prebuilt', osName, 'sysroot', 'usr', 'include', 'android').toString()}`,
+    `${devlib ? `-I${path.join(directory, '..', 'core', 'src').toString()}` : ''}`, 
     '-c',
     '-D DEBUG',
-    '-D PLATFORM="ANDROID"',
-    '-D APPNAME=' + projectDefinition.name
+    '-D PLATFORM="ANDROID"'
   ];
 
   const archFlags = {
@@ -106,6 +106,7 @@ const buildAppLib = async (directory, sdkLocations, projectDefinition) => {
     '-s',
     '-lm',
     '-landroid',
+    '-lpellengine',
     '-llog',
     '-uANativeActivity_onCreate'
   ];
@@ -146,6 +147,11 @@ const buildAppLib = async (directory, sdkLocations, projectDefinition) => {
     
     let command = `${compilerPath} ${ldFlags.join(' ')} `;
     command += `-L${path.join(ndk, 'toolchains', 'llvm', 'prebuilt', osName, 'sysroot', 'usr', 'lib', libFolders[arch]).toString()} `;
+
+    if(devlib) {
+      command += `-L${path.join(directory, '..', 'core', 'build', 'android', 'lib', arch).toString()} `;
+    }
+
     command += `-o ${path.join(buildDir, 'lib', arch, `lib${projectDefinition.name}.so`).toString()} `
     command += `${srcs.map(src => {
       const objectPath = src.substr(0, src.lastIndexOf('.')) + '.o';
@@ -159,7 +165,7 @@ const buildAppLib = async (directory, sdkLocations, projectDefinition) => {
   return { success: true, message: 'Successfully built application.' };
 };
 
-const createApk = async (directory, sdkLocations, projectDefinition) => {
+const createApk = async (directory, sdkLocations, projectDefinition, devlib) => {
   const buildDir = path.join(directory, 'build', 'android');
 
   infoLog('Copying assets...');
@@ -200,6 +206,7 @@ const createApk = async (directory, sdkLocations, projectDefinition) => {
 
   // Add libc++_shared.so to apk
   const libcppSharedBasePath = path.join(sdkLocations.androidNdk, 'sources', 'cxx-stl', 'llvm-libc++', 'libs');
+  const libpellengineBasePath = path.join(directory, '..', 'core', 'build', 'android', 'lib');
 
   const architectures = [
     'arm64-v8a',
@@ -209,7 +216,20 @@ const createApk = async (directory, sdkLocations, projectDefinition) => {
   ];
 
   for(let arch of architectures) {
-    fsExtra.copyFileSync(path.join(libcppSharedBasePath, arch, 'libc++_shared.so').toString(), path.join(buildDir, 'outputs', 'temp-' + projectDefinition.name, 'lib', arch, 'libc++_shared.so').toString());
+    fsExtra.copyFileSync(
+      path.join(libcppSharedBasePath, arch, 'libc++_shared.so').toString(), 
+      path.join(buildDir, 'outputs', 'temp-' + projectDefinition.name, 'lib', arch, 'libc++_shared.so').toString()
+    );
+  }
+
+  // If we have devlib enabled, add shared library from local development folder
+  if(devlib) {
+    for(let arch of architectures) {
+      fsExtra.copyFileSync(
+        path.join(libpellengineBasePath, arch, 'libpellengine.so').toString(),
+        path.join(buildDir, 'outputs', 'temp-' + projectDefinition.name, 'lib', arch, 'libpellengine.so').toString()
+      );
+    }
   }
 
   infoLog('Zipping new apk...');

@@ -18,13 +18,16 @@ const argv = yargs(hideBin(process.argv))
     yargs => {
       yargs.positional('platform', {
         describe: '[apk, appbundle, ios, ipa]'
-      })
+      });
+      yargs.option('devlib', {
+        describe: 'Automatically link local pellengine copy when developing the engine'
+      });
     },
     argv => {
       switch(argv.platform.toLowerCase()) {
         case 'apk':
           const build = new AndroidApkBuild();
-          build.run();
+          build.run({ devlib: !!argv.devlib });
           break;
 
         case 'appbundle':
