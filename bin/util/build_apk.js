@@ -222,6 +222,18 @@ const createApk = async (directory, sdkLocations, projectDefinition, devlib) => 
     );
   }
 
+  // Add vulkan libraries to apk
+  const libVulkanBasePath = path.join(sdkLocations.androidNdk, 'sources', 'third_party', 'vulkan', 'src', 'build-android', 'jniLibs');
+  for(let arch of architectures) {
+    const libs = fs.readdirSync(path.join(libVulkanBasePath, arch));
+    libs.forEach(lib => {
+      fsExtra.copyFileSync(
+        path.join(libVulkanBasePath, arch, lib).toString(),
+        path.join(buildDir, 'outputs', 'temp-' + projectDefinition.name, 'lib', arch, lib).toString()
+      )
+    });
+  }
+
   // If we have devlib enabled, add shared library from local development folder
   if(devlib) {
     for(let arch of architectures) {
