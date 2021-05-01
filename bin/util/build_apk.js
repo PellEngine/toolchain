@@ -73,7 +73,8 @@ const buildAppLib = async (directory, sdkLocations, projectDefinition, devlib) =
     `${devlib ? `-I${path.join(directory, '..', 'core', 'src').toString()}` : ''}`, 
     '-c',
     '-D DEBUG',
-    '-D PLATFORM="ANDROID"'
+    '-D PLATFORM="ANDROID"',
+    '-std=c++17'
   ];
 
   const archFlags = {
