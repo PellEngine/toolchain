@@ -64,9 +64,9 @@ const buildAppLib = async (directory, sdkLocations, projectDefinition, devlib) =
     '-fdata-sections',
     '-Wall',
     '-fvisibility=hidden',
-    '-DANDROID',
-    `-DAPPNAME=\"${projectDefinition.name}"`,
-    '-DANDROID_FULLSCREEN',
+    '-D ANDROID',
+    `-D APPNAME=\"${projectDefinition.name}"`,
+    '-D ANDROID_FULLSCREEN',
     `-I${path.join(ndk, 'sysroot', 'usr', 'include').toString()}`,
     `-I${path.join(ndk, 'sysroot', 'usr', 'include', 'android').toString()}`,
     `-I${path.join(ndk, 'toolchains', 'llvm', 'prebuilt', osName, 'sysroot', 'usr', 'include', 'android').toString()}`,
@@ -74,6 +74,7 @@ const buildAppLib = async (directory, sdkLocations, projectDefinition, devlib) =
     '-c',
     '-D DEBUG',
     '-D PLATFORM="ANDROID"',
+    '-DVK_USE_PLATFORM_ANDROID_KHR',
     '-std=c++17'
   ];
 
