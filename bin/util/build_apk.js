@@ -179,6 +179,16 @@ const createApk = async (directory, sdkLocations, projectDefinition, devlib) => 
     fsExtra.copySync(path.join(directory, 'assets').toString(), path.join(buildDir, 'assets').toString());
   }
 
+  // If we are developing the api, copy the shaders provided by the library from the local build folder
+  if(devlib) {
+    const pellengineShadersBasePath = path.join(directory, '..', 'core', 'build', 'shaders');
+
+    fsExtra.copySync(
+      pellengineShadersBasePath.toString(),
+      path.join(buildDir, 'assets', 'shaders').toString()
+    );
+  }
+
   const aaptPath = path.join(sdkLocations.androidBuildTools, 'aapt');
   
   infoLog('Creating temporary apk...');
